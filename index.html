@@ -160,10 +160,8 @@ button.active {
   text-align: center;
   font-size: 20px;
   font-weight: 600;
+  color: white; /* saldo SEMPRE neutro */
 }
-
-.red { color: #f87171; }
-.green { color: #4ade80; }
 
 .reset {
   margin-top: 18px;
@@ -304,7 +302,7 @@ function render() {
     saldo < 0 ? `Mayte deve €${Math.abs(saldo).toFixed(2)}` :
     "Siete pari ✨";
 
-  saldoDiv.className = "saldo " + (saldo > 0 ? "red" : saldo < 0 ? "green" : "");
+  saldoDiv.className = "saldo";
 }
 
 function cancellaUltima() { spese.pop(); salvaCloud(); render(); }
