@@ -22,10 +22,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 📌 DOCUMENTO CONDIVISO
 const ref = doc(db, "coppia", "matteo-mayte");
 
-// 🔄 ASCOLTO REALTIME
 onSnapshot(ref, snap => {
   if (snap.exists()) {
     spese = snap.data().spese || [];
@@ -33,7 +31,6 @@ onSnapshot(ref, snap => {
   }
 });
 
-// 💾 SALVA SU CLOUD
 window.salvaCloud = async function () {
   await setDoc(ref, { spese });
 };
@@ -257,9 +254,16 @@ function aggiungi() {
 
 function render() {
   lista.innerHTML = "";
-  let debito = 0, anticipo = 0;
+
+  let debito = 0;
+  let anticipo = 0;
 
   spese.forEach((s, i) => {
+    const quota = s.dividi ? s.importo / 2 : s.importo;
+
+    if (s.pagatore === "Mayte") debito += quota;
+    else anticipo += quota;
+
     const el = document.createElement("div");
     el.className = "item";
     const data = new Date(s.data).toLocaleDateString("it-IT");
@@ -269,7 +273,7 @@ function render() {
            <div class="action" onclick="modificaUltima()">✏️</div>
            <div class="action" onclick="cancellaUltima()">🗑️</div>
          </div>`
-      : `<span>${s.dividi ? "½" : "—"}</span>`;
+      : `<span>${s.dividi ? "🔁 Divisa" : "👤 Non divisa"}</span>`;
 
     el.innerHTML = `
       <div class="item-left">
@@ -280,9 +284,6 @@ function render() {
     `;
 
     lista.appendChild(el);
-
-    if (s.dividi && s.pagatore === "Mayte") debito += s.importo / 2;
-    if (!s.dividi && s.pagatore === "Matteo") anticipo += s.importo;
   });
 
   const saldo = debito - anticipo;
@@ -295,6 +296,7 @@ function render() {
 }
 
 function cancellaUltima() { spese.pop(); salvaCloud(); render(); }
+
 function modificaUltima() {
   const s = spese.pop();
   importoInput.value = s.importo;
@@ -325,4 +327,3 @@ const y = document.getElementById("y");
 
 </body>
 </html>
-
