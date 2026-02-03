@@ -135,7 +135,18 @@ button.active {
 .item-left { display: flex; flex-direction: column; }
 .date { font-size: 12px; opacity: .6; }
 
-.item-actions { display: flex; gap: 6px; }
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status {
+  font-size: 12px;
+  opacity: .7;
+  white-space: nowrap;
+}
+
 .action {
   background: rgba(255,255,255,.15);
   border-radius: 10px;
@@ -268,19 +279,20 @@ function render() {
     el.className = "item";
     const data = new Date(s.data).toLocaleDateString("it-IT");
 
-    let actions = i === spese.length - 1
+    let right = i === spese.length - 1
       ? `<div class="item-actions">
+           <span class="status">${s.dividi ? "Divisa" : "Non divisa"}</span>
            <div class="action" onclick="modificaUltima()">✏️</div>
            <div class="action" onclick="cancellaUltima()">🗑️</div>
          </div>`
-      : `<span>${s.dividi ? "🔁 Divisa" : "👤 Non divisa"}</span>`;
+      : `<span class="status">${s.dividi ? "Divisa" : "Non divisa"}</span>`;
 
     el.innerHTML = `
       <div class="item-left">
         <div>${s.pagatore} · €${s.importo}</div>
         <div class="date">${data}</div>
       </div>
-      ${actions}
+      ${right}
     `;
 
     lista.appendChild(el);
