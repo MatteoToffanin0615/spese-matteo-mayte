@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Spese Matteo & Mayte</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #020617, #09090b, #18181b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+/* CARD */
+.card {
+  width: 100%;
+  max-width: 380px;
+  padding: 26px;
+  border-radius: 30px;
+  background: rgba(255,255,255,.08);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 25px 60px rgba(0,0,0,.5);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  border: none;
+  background: rgba(0,0,0,.45);
+  color: white;
+  font-size: 16px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+button {
+  flex: 1;
+  padding: 14px;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  background: rgba(255,255,255,.1);
+  color: white;
+  transition: .2s;
+}
+
+button.active {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+}
+
+.checkbox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.05);
+}
+
+.checkbox input {
+  width: 20px;
+  height: 20px;
+  accent-color: #d946ef;
+}
+
+/* ADD */
+.add {
+  margin-top: 18px;
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #d946ef, #fb7185);
+  box-shadow: 0 0 25px rgba(217,70,239,.5);
+}
+
+.add:active { transform: scale(.97); }
+
+.list {
+  margin-top: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgba(0,0,0,.4);
+}
+
+.item-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.date {
+  font-size: 12px;
+  opacity: .6;
+}
+
+.item-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.action {
+  background: rgba(255,255,255,.15);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.saldo {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.red { color: #f87171; }
+.green { color: #4ade80; }
+
+/* RESET */
+.reset {
+  margin-top: 18px;
+  width: 100%;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.15);
+}
+
+/* 🔥 POPUP */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.popup {
+  width: 90%;
+  max-width: 320px;
+  padding: 24px;
+  border-radius: 24px;
+  background: rgba(255,255,255,.12);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 25px 60px rgba(0,0,0,.6);
+  text-align: center;
+}
+
+.popup h2 {
+  margin-bottom: 12px;
+}
+
+.popup p {
+  font-size: 14px;
+  opacity: .8;
+}
+
+.popup-buttons {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+}
+
+.confirm {
+  background: linear-gradient(135deg, #d946ef, #fb7185);
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h1>💸 Spese Matteo & Mayte</h1>
+
+  <input id="importo" type="number" placeholder="Importo €">
+
+  <div class="row">
+    <button id="m" class="active" onclick="setPagatore('Matteo')">Ha pagato Matteo</button>
+    <button id="y" onclick="setPagatore('Mayte')">Ha pagato Mayte</button>
+  </div>
+
+  <div class="checkbox">
+    <span>Dividi a metà</span>
+    <input id="dividi" type="checkbox">
+  </div>
+
+  <button class="add" onclick="aggiungi()">➕ AGGIUNGI SPESA</button>
+
+  <div id="lista" class="list"></div>
+  <div id="saldo" class="saldo">Siete pari ✨</div>
+
+  <button class="reset" onclick="apriPopup()">✅ Pagato – Azzera tutto</button>
+</div>
+
+<!-- POPUP -->
+<div id="overlay" class="overlay">
+  <div class="popup">
+    <h2>Confermi di aver pagato?</h2>
+    <p>Questa operazione azzererà tutte le spese.</p>
+
+    <div class="popup-buttons">
+      <button onclick="chiudiPopup()">Annulla</button>
+      <button class="confirm" onclick="confermaPagamento()">Conferma</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let spese = [];
+let pagatore = "Matteo";
+
+/* CORE */
+function setPagatore(p) {
+  pagatore = p;
+  m.classList.toggle("active", p === "Matteo");
+  y.classList.toggle("active", p === "Mayte");
+}
+
+function aggiungi() {
+  const valore = parseFloat(importoInput.value);
+  if (!valore) return;
+
+  spese.push({
+    importo: valore,
+    pagatore,
+    dividi: dividi.checked,
+    data: new Date()
+  });
+
+  importoInput.value = "";
+  render();
+}
+
+function render() {
+  lista.innerHTML = "";
+
+  let debito = 0;
+  let anticipo = 0;
+
+  spese.forEach((s, i) => {
+    const el = document.createElement("div");
+    el.className = "item";
+
+    const data = new Date(s.data).toLocaleDateString("it-IT");
+
+    let actions = "";
+    if (i === spese.length - 1) {
+      actions = `
+        <div class="item-actions">
+          <div class="action" onclick="modificaUltima()">✏️</div>
+          <div class="action" onclick="cancellaUltima()">🗑️</div>
+        </div>`;
+    }
+
+    el.innerHTML = `
+      <div class="item-left">
+        <div>${s.pagatore} · €${s.importo}</div>
+        <div class="date">${data}</div>
+      </div>
+      ${actions || `<span>${s.dividi ? "½" : "—"}</span>`}
+    `;
+
+    lista.appendChild(el);
+
+    if (s.dividi && s.pagatore === "Mayte") debito += s.importo / 2;
+    if (!s.dividi && s.pagatore === "Matteo") anticipo += s.importo;
+  });
+
+  const saldo = debito - anticipo;
+  if (saldo > 0) {
+    saldoDiv.textContent = `Matteo deve €${saldo.toFixed(2)}`;
+    saldoDiv.className = "saldo red";
+  } else if (saldo < 0) {
+    saldoDiv.textContent = `Mayte deve €${Math.abs(saldo).toFixed(2)}`;
+    saldoDiv.className = "saldo green";
+  } else {
+    saldoDiv.textContent = "Siete pari ✨";
+    saldoDiv.className = "saldo";
+  }
+}
+
+/* EDIT */
+function cancellaUltima() {
+  spese.pop();
+  render();
+}
+
+function modificaUltima() {
+  const s = spese.pop();
+  importoInput.value = s.importo;
+  dividi.checked = s.dividi;
+  setPagatore(s.pagatore);
+  render();
+}
+
+/* POPUP */
+function apriPopup() {
+  overlay.style.display = "flex";
+}
+
+function chiudiPopup() {
+  overlay.style.display = "none";
+}
+
+function confermaPagamento() {
+  spese = [];
+  chiudiPopup();
+  render();
+}
+
+/* DOM */
+const importoInput = document.getElementById("importo");
+const dividi = document.getElementById("dividi");
+const lista = document.getElementById("lista");
+const saldoDiv = document.getElementById("saldo");
+const overlay = document.getElementById("overlay");
+const m = document.getElementById("m");
+const y = document.getElementById("y");
+</script>
+
+</body>
+</html>
