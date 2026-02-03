@@ -1,18 +1,46 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#d946ef">
-
 <meta charset="UTF-8">
 <title>Spese Matteo & Mayte</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvTzvGZDsgVXleAbXoRQyh2ae4cvi16gM",
+  authDomain: "spese-matteo-mayte.firebaseapp.com",
+  projectId: "spese-matteo-mayte",
+  storageBucket: "spese-matteo-mayte.firebasestorage.app",
+  messagingSenderId: "786804659855",
+  appId: "1:786804659855:web:9e0233364596ab5339c2fa"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 📌 DOCUMENTO CONDIVISO
+const ref = doc(db, "coppia", "matteo-mayte");
+
+// 🔄 ASCOLTO REALTIME
+onSnapshot(ref, snap => {
+  if (snap.exists()) {
+    spese = snap.data().spese || [];
+    render();
+  }
+});
+
+// 💾 SALVA SU CLOUD
+window.salvaCloud = async function () {
+  await setDoc(ref, { spese });
+};
+</script>
+
 <style>
-* {
-  box-sizing: border-box;
-  font-family: system-ui, -apple-system;
-}
+* { box-sizing: border-box; font-family: system-ui, -apple-system; }
 
 body {
   margin: 0;
@@ -24,7 +52,6 @@ body {
   color: white;
 }
 
-/* CARD */
 .card {
   width: 100%;
   max-width: 380px;
@@ -35,10 +62,7 @@ body {
   box-shadow: 0 25px 60px rgba(0,0,0,.5);
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 22px;
-}
+h1 { text-align: center; margin-bottom: 22px; }
 
 input {
   width: 100%;
@@ -50,11 +74,7 @@ input {
   font-size: 16px;
 }
 
-.row {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-}
+.row { display: flex; gap: 10px; margin-top: 14px; }
 
 button {
   flex: 1;
@@ -64,7 +84,6 @@ button {
   cursor: pointer;
   background: rgba(255,255,255,.1);
   color: white;
-  transition: .2s;
 }
 
 button.active {
@@ -87,7 +106,6 @@ button.active {
   accent-color: #d946ef;
 }
 
-/* ADD */
 .add {
   margin-top: 18px;
   width: 100%;
@@ -98,8 +116,6 @@ button.active {
   background: linear-gradient(135deg, #d946ef, #fb7185);
   box-shadow: 0 0 25px rgba(217,70,239,.5);
 }
-
-.add:active { transform: scale(.97); }
 
 .list {
   margin-top: 20px;
@@ -119,21 +135,10 @@ button.active {
   background: rgba(0,0,0,.4);
 }
 
-.item-left {
-  display: flex;
-  flex-direction: column;
-}
+.item-left { display: flex; flex-direction: column; }
+.date { font-size: 12px; opacity: .6; }
 
-.date {
-  font-size: 12px;
-  opacity: .6;
-}
-
-.item-actions {
-  display: flex;
-  gap: 6px;
-}
-
+.item-actions { display: flex; gap: 6px; }
 .action {
   background: rgba(255,255,255,.15);
   border-radius: 10px;
@@ -152,7 +157,6 @@ button.active {
 .red { color: #f87171; }
 .green { color: #4ade80; }
 
-/* RESET */
 .reset {
   margin-top: 18px;
   width: 100%;
@@ -161,7 +165,7 @@ button.active {
   background: rgba(255,255,255,.15);
 }
 
-/* 🔥 POPUP */
+/* POPUP */
 .overlay {
   position: fixed;
   inset: 0;
@@ -170,7 +174,6 @@ button.active {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 100;
 }
 
 .popup {
@@ -180,28 +183,11 @@ button.active {
   border-radius: 24px;
   background: rgba(255,255,255,.12);
   backdrop-filter: blur(20px);
-  box-shadow: 0 25px 60px rgba(0,0,0,.6);
   text-align: center;
 }
 
-.popup h2 {
-  margin-bottom: 12px;
-}
-
-.popup p {
-  font-size: 14px;
-  opacity: .8;
-}
-
-.popup-buttons {
-  margin-top: 18px;
-  display: flex;
-  gap: 10px;
-}
-
-.confirm {
-  background: linear-gradient(135deg, #d946ef, #fb7185);
-}
+.popup-buttons { margin-top: 18px; display: flex; gap: 10px; }
+.confirm { background: linear-gradient(135deg, #d946ef, #fb7185); }
 </style>
 </head>
 
@@ -230,12 +216,10 @@ button.active {
   <button class="reset" onclick="apriPopup()">✅ Pagato – Azzera tutto</button>
 </div>
 
-<!-- POPUP -->
 <div id="overlay" class="overlay">
   <div class="popup">
-    <h2>Confermi di aver pagato?</h2>
+    <h3>Confermi di aver pagato?</h3>
     <p>Questa operazione azzererà tutte le spese.</p>
-
     <div class="popup-buttons">
       <button onclick="chiudiPopup()">Annulla</button>
       <button class="confirm" onclick="confermaPagamento()">Conferma</button>
@@ -247,7 +231,8 @@ button.active {
 let spese = [];
 let pagatore = "Matteo";
 
-/* CORE */
+function salvaCloud() { window.salvaCloud(); }
+
 function setPagatore(p) {
   pagatore = p;
   m.classList.toggle("active", p === "Matteo");
@@ -266,36 +251,32 @@ function aggiungi() {
   });
 
   importoInput.value = "";
+  salvaCloud();
   render();
 }
 
 function render() {
   lista.innerHTML = "";
-
-  let debito = 0;
-  let anticipo = 0;
+  let debito = 0, anticipo = 0;
 
   spese.forEach((s, i) => {
     const el = document.createElement("div");
     el.className = "item";
-
     const data = new Date(s.data).toLocaleDateString("it-IT");
 
-    let actions = "";
-    if (i === spese.length - 1) {
-      actions = `
-        <div class="item-actions">
-          <div class="action" onclick="modificaUltima()">✏️</div>
-          <div class="action" onclick="cancellaUltima()">🗑️</div>
-        </div>`;
-    }
+    let actions = i === spese.length - 1
+      ? `<div class="item-actions">
+           <div class="action" onclick="modificaUltima()">✏️</div>
+           <div class="action" onclick="cancellaUltima()">🗑️</div>
+         </div>`
+      : `<span>${s.dividi ? "½" : "—"}</span>`;
 
     el.innerHTML = `
       <div class="item-left">
         <div>${s.pagatore} · €${s.importo}</div>
         <div class="date">${data}</div>
       </div>
-      ${actions || `<span>${s.dividi ? "½" : "—"}</span>`}
+      ${actions}
     `;
 
     lista.appendChild(el);
@@ -305,48 +286,34 @@ function render() {
   });
 
   const saldo = debito - anticipo;
-  if (saldo > 0) {
-    saldoDiv.textContent = `Matteo deve €${saldo.toFixed(2)}`;
-    saldoDiv.className = "saldo red";
-  } else if (saldo < 0) {
-    saldoDiv.textContent = `Mayte deve €${Math.abs(saldo).toFixed(2)}`;
-    saldoDiv.className = "saldo green";
-  } else {
-    saldoDiv.textContent = "Siete pari ✨";
-    saldoDiv.className = "saldo";
-  }
+  saldoDiv.textContent =
+    saldo > 0 ? `Matteo deve €${saldo.toFixed(2)}` :
+    saldo < 0 ? `Mayte deve €${Math.abs(saldo).toFixed(2)}` :
+    "Siete pari ✨";
+
+  saldoDiv.className = "saldo " + (saldo > 0 ? "red" : saldo < 0 ? "green" : "");
 }
 
-/* EDIT */
-function cancellaUltima() {
-  spese.pop();
-  render();
-}
-
+function cancellaUltima() { spese.pop(); salvaCloud(); render(); }
 function modificaUltima() {
   const s = spese.pop();
   importoInput.value = s.importo;
   dividi.checked = s.dividi;
   setPagatore(s.pagatore);
+  salvaCloud();
   render();
 }
 
-/* POPUP */
-function apriPopup() {
-  overlay.style.display = "flex";
-}
-
-function chiudiPopup() {
-  overlay.style.display = "none";
-}
+function apriPopup() { overlay.style.display = "flex"; }
+function chiudiPopup() { overlay.style.display = "none"; }
 
 function confermaPagamento() {
   spese = [];
+  salvaCloud();
   chiudiPopup();
   render();
 }
 
-/* DOM */
 const importoInput = document.getElementById("importo");
 const dividi = document.getElementById("dividi");
 const lista = document.getElementById("lista");
@@ -358,4 +325,3 @@ const y = document.getElementById("y");
 
 </body>
 </html>
-
